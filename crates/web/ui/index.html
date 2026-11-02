@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="{{CSP}}">
+<meta name="referrer" content="no-referrer">
+<title>psm</title>
+<style>{{STYLE}}</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>psm</h1>
+    <p class="muted">Stateless password generator. Nothing is stored, and this page cannot use the network.</p>
+  </header>
+
+  <section id="unlock-section">
+    <label for="identity">Identity</label>
+    <input id="identity" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <label for="secret">Master secret</label>
+    <input id="secret" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <button id="unlock" type="button">Unlock</button>
+    <p id="unlock-status" class="status" role="status"></p>
+  </section>
+
+  <section id="generate-section" hidden>
+    <p class="fingerprint">Fingerprint <strong id="fingerprint"></strong></p>
+    <p class="hint">Check it is the one you always see; if not, lock and retype.</p>
+
+    <label for="site">Site</label>
+    <input id="site" inputmode="url" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <p id="site-hint" class="hint"></p>
+
+    <label for="account">Account <span class="muted">(only if you have several)</span></label>
+    <input id="account" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+
+    <div class="row">
+      <div>
+        <label for="generation">Generation</label>
+        <input id="generation" type="number" inputmode="numeric" min="1" value="1">
+      </div>
+      <div>
+        <label for="length">Length</label>
+        <input id="length" type="number" inputmode="numeric">
+      </div>
+    </div>
+
+    <label for="profile">Profile</label>
+    <select id="profile"></select>
+    <p id="profile-hint" class="hint"></p>
+
+    <button id="generate" type="button">Generate</button>
+    <p id="generate-status" class="status" role="status"></p>
+
+    <div id="result" hidden>
+      <code id="password" class="password"></code>
+      <div class="row">
+        <button id="copy" type="button">Copy</button>
+        <button id="show" type="button" class="secondary">Show</button>
+      </div>
+      <p id="result-status" class="status" role="status"></p>
+    </div>
+
+    <button id="lock" type="button" class="secondary">Lock</button>
+  </section>
+
+  <footer class="muted">
+    <span>psm {{VERSION}} &middot; <span id="algorithm"></span></span>
+    <button id="selftest" type="button" class="secondary">Self-test</button>
+    <span id="selftest-status" class="status" role="status"></span>
+  </footer>
+</main>
+<script id="psm-core">{{CORE}}</script>
+<script id="psm-app">{{APP}}</script>
+</body>
+</html>

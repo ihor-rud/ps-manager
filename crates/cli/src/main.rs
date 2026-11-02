@@ -6,13 +6,20 @@
     reason = "a command-line tool reports through stdout and stderr"
 )]
 
+mod clipboard;
+mod session;
+
 use std::io::{self, BufRead, IsTerminal};
 use std::process::ExitCode;
+use std::thread;
+use std::time::Duration;
 
 use clap::builder::{PossibleValue, PossibleValuesParser, TypedValueParser};
 use clap::{Args, Parser, Subcommand};
 use psm_core::Zeroizing;
 use psm_core::v1::{self, Policy, Profile, Request, RootKey, normalize};
+
+use crate::clipboard::Clipboard;
 
 const VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), " (ps-manager/v1)");
 
@@ -39,6 +46,15 @@ enum Command {
         request: RequestArgs,
         #[command(flatten)]
         key: KeyArgs,
+        #[command(flatten)]
+        output: OutputArgs,
+    },
+    /// Enter the master secret once, then generate passwords for several sites
+    Session {
+        #[command(flatten)]
+        key: KeyArgs,
+        #[command(flatten)]
+        output: OutputArgs,
     },
     /// Show only the master-key fingerprint
     Fingerprint {
@@ -155,6 +171,27 @@ impl KeyArgs {
     }
 }
 
+#[derive(Args)]
+struct OutputArgs {
+    /// Copy passwords to the clipboard instead of printing them
+    #[arg(short, long)]
+    clip: bool,
+    /// Seconds before a copied password is cleared from the clipboard
+    #[arg(
+        long,
+        value_name = "SECONDS",
+        default_value_t = 20,
+        value_parser = clap::value_parser!(u64).range(1..=3600)
+    )]
+    clear_after: u64,
+}
+
+impl OutputArgs {
+    const fn clear_after(&self) -> Duration {
+        Duration::from_secs(self.clear_after)
+    }
+}
+
 /// Accepts the profile names of the spec and lists them, with descriptions,
 /// in `--help`.
 fn profile_parser() -> impl TypedValueParser<Value = Profile> {
@@ -183,12 +220,24 @@ fn describe(request: &Request) {
     );
 }
 
-fn generate(request: &RequestArgs, key: &KeyArgs) -> Result<(), String> {
+fn generate(request: &RequestArgs, key: &KeyArgs, output: &OutputArgs) -> Result<(), String> {
     let request = request.request()?;
     let key = key.root_key()?;
     describe(&request);
     let password = key.password(&request).map_err(|e| e.to_string())?;
-    println!("{}", password.as_str());
+    if !output.clip {
+        println!("{}", password.as_str());
+        return Ok(());
+    }
+    let mut clipboard = Clipboard::new(output.clear_after())?;
+    clipboard.copy(&password)?;
+    eprintln!(
+        "Copied to the clipboard; clearing it in {} s (Ctrl+C clears it now).",
+        output.clear_after
+    );
+    thread::sleep(clipboard.clear_after());
+    clipboard.clear();
+    eprintln!("Clipboard cleared.");
     Ok(())
 }
 
@@ -223,7 +272,12 @@ fn selftest() -> Result<(), String> {
 
 fn main() -> ExitCode {
     let result = match Cli::parse().command {
-        Command::Generate { request, key } => generate(&request, &key),
+        Command::Generate {
+            request,
+            key,
+            output,
+        } => generate(&request, &key, &output),
+        Command::Session { key, output } => session::run(&key, &output),
         Command::Fingerprint { key } => key.root_key().map(drop),
         Command::Normalize { request, identity } => show_normalized(&request, identity.as_deref()),
         Command::Policies => {

@@ -12,14 +12,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: clippy, rustfmt
-          targets: aarch64-linux-android, x86_64-pc-windows-gnu
+          targets: wasm32-unknown-unknown, x86_64-pc-windows-gnu
       - uses: taiki-e/install-action@v2
         with:
-          tool: cargo-make,cargo-audit,cargo-ndk,taplo
+          tool: cargo-make,cargo-audit,taplo
       - run: cargo make format-check
       - run: cargo make audit
-      # The runner image ships an NDK and exports its path as ANDROID_NDK_LATEST_HOME.
-      - run: ANDROID_NDK_HOME="$ANDROID_NDK_LATEST_HOME" cargo make clippy
+      - run: cargo make clippy
 
   test:
     strategy:
@@ -46,28 +45,21 @@ jobs:
       - run: pip install "cryptography>=44"
       - run: python -I reference/psm_ref.py verify spec/vectors-v1.json
 
-  jni:
+  web:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: "21"
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-make
-      - run: cargo make jni-test
-
-  android:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-make,cargo-ndk
-      - run: ANDROID_NDK_HOME="$ANDROID_NDK_LATEST_HOME" cargo make android-build
+      # wasm-bindgen-cli must match the wasm-bindgen crate in Cargo.lock.
+      - run: cargo install --locked wasm-bindgen-cli --version "$(cargo pkgid wasm-bindgen | sed 's/.*@//')"
+      - run: cargo make web-test
+      # The runner image includes Firefox.
+      - run: cargo make web-browser-test

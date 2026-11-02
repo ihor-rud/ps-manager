@@ -2,7 +2,8 @@
 
 A stateless, offline password generator. From a memorized master secret and a
 few facts you already know about an account, it reconstructs the same password
-on Windows, Linux or Android, with no vault, no sync, no account and no network.
+on Windows, Linux, or a phone's browser, with no vault, no sync, no account and
+no network.
 
 > **Status: pre-release.** The v1 algorithm in [spec/SPEC-v1.md](spec/SPEC-v1.md)
 > is a draft and may still change. Don't use it for important accounts until the
@@ -40,7 +41,7 @@ always be the same. If it's different, you mistyped the secret or your identity.
 | `spec/` | Algorithm specification and test vectors |
 | `crates/core` | `psm-core`: the algorithm, versioned by module (`psm_core::v1`) |
 | `crates/cli` | `psm`: command-line app for Linux and Windows |
-| `crates/android` | `psm-android`: JNI bridge (`libpsm_android.so`) for the Android app |
+| `crates/web` | `psm-web`: the core compiled to WebAssembly, and the browser app (`psm.html`) |
 | `reference/` | Independent Python implementation, also usable for recovery |
 
 ## Command line
@@ -51,28 +52,51 @@ cargo build --release -p psm          # produces target/release/psm (psm.exe on 
 psm generate github.com               # asks for identity and master secret
 psm g github.com -a alice@example.com -g 2
 psm g oldbank.example -p legacy -l 12
+psm g github.com --clip               # copy instead of print; cleared after 20 s
+psm session --clip                    # enter the secret once, then one site per line
 psm policies
 psm normalize "https://www.GitHub.com/login"
 psm selftest                          # check this build against built-in vectors
+psm help generate                     # every option
 ```
 
-Set `PSM_IDENTITY` to skip the identity prompt. The password goes to stdout and
-everything else to stderr, so `psm g github.com | wl-copy` (or `| clip` on
-Windows) copies only the password.
+Set `PSM_IDENTITY` to skip the identity prompt. Without `--clip`, the password
+goes to stdout and everything else to stderr.
 
-## Android
+With `--clip`, the password is copied with the platform's "don't keep this"
+hints: Windows keeps it out of clipboard history and cloud sync, and on Linux
+it is marked for password-aware clipboard managers and never handed to one when
+`psm` exits. It is cleared after `--clear-after` seconds (default 20) or on
+Ctrl+C, but only if the clipboard still holds it.
 
-The Android app will call the shared Rust core through JNI, so every platform
-runs the same code. To build the native library, you need the NDK and
-[cargo-ndk](https://github.com/bbqsrc/cargo-ndk):
+In a session, each line takes the options of `psm generate`, for example
+`github.com -a alice -g 2` or `"My Bank" -p pin`; add `-c` to copy one password.
+`exit` or Ctrl+D ends the session and clears the clipboard.
+
+## Phone and browser
+
+`psm.html` is the whole app in one file: the same Rust core compiled to
+WebAssembly, plus a small page around it. Copy it to your phone (or any
+computer) and open it in Chrome or Firefox from the Files app. It needs no
+installation and no internet connection.
 
 ```sh
-rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
-cargo make android-build    # arm64-v8a, armeabi-v7a and x86_64 into target/jniLibs
+cargo make web-build        # writes target/web/psm.html
 ```
 
-The Kotlin side of the interface is documented at the top of
-[crates/android/src/lib.rs](crates/android/src/lib.rs).
+The page's Content-Security-Policy admits only its own inline code, by hash,
+and blocks every network request, so it cannot send anything anywhere. The root
+key stays inside WebAssembly memory and is wiped when you lock the page, when
+you close it, or after 5 minutes without use. Passwords are hidden until you
+tap Show and disappear after a minute; a copied password is cleared from the
+clipboard after 20 seconds while the page is open. Use **Self-test** to check
+that a browser computes the published vectors.
+
+A browser page has limits a native app would not: it cannot block screenshots,
+the browser may offer to save the master secret (decline), and clipboard
+clearing only works while the page is in front. Anyone who can change the file
+can change what it does, so keep it where other apps cannot write, and compare
+it with `SHA256SUMS` from the release when you copy it.
 
 ## Development
 
@@ -80,26 +104,60 @@ Tools:
 
 ```sh
 rustup toolchain install stable nightly     # nightly runs rustfmt and clippy
-rustup target add --toolchain nightly aarch64-linux-android x86_64-pc-windows-gnu
-cargo install --locked cargo-make cargo-audit cargo-ndk taplo-cli
+rustup target add wasm32-unknown-unknown
+rustup target add --toolchain nightly wasm32-unknown-unknown x86_64-pc-windows-gnu
+cargo install --locked cargo-make cargo-audit taplo-cli
+cargo install --locked wasm-bindgen-cli --version "$(cargo pkgid wasm-bindgen | sed 's/.*@//')"
 ```
 
-The Android tasks need the NDK: `export ANDROID_NDK_HOME=/path/to/android-ndk`.
-`jni-test` needs a JDK, and `reference` needs Python 3 with `cryptography`.
+`wasm-bindgen-cli` must be the same version as the `wasm-bindgen` crate in
+Cargo.lock. The web tasks need Python 3 and Node.js 22 or later,
+`web-browser-test` needs Firefox, and `reference` needs Python's `cryptography`.
 
 | Command | What it does |
 |---|---|
 | `cargo make format` | Format Rust (nightly rustfmt, [.rustfmt.toml](.rustfmt.toml)) and TOML ([taplo.toml](taplo.toml)) |
 | `cargo make format-check` | Check formatting without changing files |
-| `cargo make clippy` | Nightly clippy for Linux, Windows and Android targets |
+| `cargo make clippy` | Nightly clippy for Linux, Windows and WebAssembly targets |
 | `cargo make audit` | Check dependencies against the RustSec advisory database |
 | `cargo make test` | Unit tests and every test vector |
 | `cargo make selftest` | Run `psm selftest` from a release build |
 | `cargo make reference` | Recompute all vectors with the independent Python implementation |
-| `cargo make jni-test` | Call the JNI bridge from a desktop JVM |
-| `cargo make build` / `android-build` | Release CLI / Android libraries in `target/jniLibs` |
+| `cargo make web-test` | Run every vector through the WebAssembly core inside the built `psm.html` |
+| `cargo make web-browser-test` | Use `psm.html` in headless Firefox: unlock, generate, self-test, lock |
+| `cargo make build` / `web-build` | Release CLI / `target/web/psm.html` |
+| `cargo make dist [TARGET\|web]` | Release file in `target/dist`, see [scripts/dist.sh](scripts/dist.sh) |
 | `cargo make ci` | All of the above, as CI runs them |
 
 The lints in [Cargo.toml](Cargo.toml) are strict (pedantic, nursery, no
 `unwrap`/`expect`/`panic` outside tests). Where a lint has to give way, use
 `#[expect(lint, reason = "...")]`, not `allow`.
+
+## Releases
+
+Bump `version` in [Cargo.toml](Cargo.toml), then push a matching tag:
+
+```sh
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+The [release workflow](.github/workflows/release.yml) checks that the tag
+matches the version, then builds:
+
+- `psm-<version>-x86_64-unknown-linux-musl.tar.gz`, a static binary for any x86-64 Linux
+- `psm-<version>-x86_64-pc-windows-msvc.zip`
+- `psm-<version>.html`, the browser app
+
+It opens a **draft** release with these files and a `SHA256SUMS` file. Review
+the draft before you publish it. The two archives also contain the spec, the
+test vectors and the Python reference implementation, so passwords can be
+recovered from an archive alone.
+
+## License
+
+Licensed under either of [Apache License, Version 2.0](LICENSE-APACHE) or
+[MIT license](LICENSE-MIT), at your option.
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in this project by you, as defined in the Apache-2.0 license,
+shall be dual licensed as above, without any additional terms or conditions.

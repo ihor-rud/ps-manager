@@ -3,7 +3,7 @@ skip_git_env_info = true
 
 [tasks.clippy]
 clear        = true
-dependencies = ["native-clippy", "windows-clippy", "android-clippy"]
+dependencies = ["native-clippy", "windows-clippy", "wasm-clippy"]
 workspace    = false
 
 [tasks.native-clippy]
@@ -30,21 +30,22 @@ extend = "native-clippy"
 [tasks.clippy-windows]
 alias = "windows-clippy"
 
-[tasks.android-clippy]
+# The command-line app is not built for the browser.
+[tasks.wasm-clippy]
 args = [
-    "ndk",
-    "--target",
-    "aarch64-linux-android",
     "clippy",
     "--workspace",
+    "--exclude",
+    "psm",
     "--all-targets",
     "--all-features",
+    "--target",
+    "wasm32-unknown-unknown",
 ]
 extend = "native-clippy"
-install_crate = "cargo-ndk"
 
-[tasks.clippy-android]
-alias = "android-clippy"
+[tasks.clippy-wasm]
+alias = "wasm-clippy"
 
 [tasks.audit]
 args          = ["audit", "--deny", "warnings"]
@@ -99,43 +100,47 @@ args      = ["-I", "reference/psm_ref.py", "verify", "spec/vectors-v1.json"]
 command   = "python3"
 workspace = false
 
-# Calls the JNI bridge from a desktop JVM.
-[tasks.jni-test]
-args      = ["crates/android/jvm-test/run.sh"]
-command   = "sh"
-workspace = false
-
-[tasks.test-jni]
-alias = "jni-test"
-
 [tasks.build]
 args      = ["build", "--release", "--package", "psm"]
 clear     = true
 command   = "cargo"
 workspace = false
 
-[tasks.android-build]
-args = [
-    "ndk",
-    "--target",
-    "arm64-v8a",
-    "--target",
-    "armeabi-v7a",
-    "--target",
-    "x86_64",
-    "--output-dir",
-    "target/jniLibs",
-    "build",
-    "--release",
-    "--package",
-    "psm-android",
-]
-command = "cargo"
-install_crate = "cargo-ndk"
+# Release archive for this machine, or `cargo make dist web`; see scripts/dist.sh.
+[tasks.dist]
+args      = ["scripts/dist.sh", "${@}"]
+command   = "sh"
 workspace = false
 
-[tasks.build-android]
-alias = "android-build"
+# The browser app as one file, target/web/psm.html. Needs the wasm32 target and
+# a wasm-bindgen-cli of the same version as the wasm-bindgen crate.
+[tasks.web-build]
+args      = ["scripts/build-web.py"]
+command   = "python3"
+workspace = false
+
+[tasks.build-web]
+alias = "web-build"
+
+# Runs every test vector through the WebAssembly core embedded in psm.html.
+[tasks.web-test]
+dependencies = ["web-build"]
+script = '''
+node --check crates/web/ui/app.js
+node crates/web/test/vectors.mjs target/web/psm.html spec/vectors-v1.json
+'''
+workspace = false
+
+# Uses psm.html in headless Firefox; needs Node.js 22 or later.
+[tasks.web-browser-test]
+args = [
+    "crates/web/test/browser.mjs",
+    "target/web/psm.html",
+    "spec/vectors-v1.json",
+]
+command = "node"
+dependencies = ["web-build"]
+workspace = false
 
 [tasks.ci]
 clear = true
@@ -146,7 +151,7 @@ dependencies = [
     "test",
     "selftest",
     "reference",
-    "jni-test",
-    "android-build",
+    "web-test",
+    "web-browser-test",
 ]
 workspace = false
