@@ -1,0 +1,504 @@
+{
+  "algorithm": "ps-manager/v1",
+  "argon2id": {
+    "lanes": 4,
+    "memory_kib": 65536,
+    "passes": 3,
+    "tag_length": 32,
+    "version": 19
+  },
+  "normalization": [
+    {
+      "function": "text",
+      "input": "Test User",
+      "output": "test user"
+    },
+    {
+      "function": "text",
+      "input": "  Jane \u00a0\t DOE \n",
+      "output": "jane doe"
+    },
+    {
+      "function": "text",
+      "input": "\uff21\uff22\uff23",
+      "output": "abc"
+    },
+    {
+      "function": "text",
+      "input": "\ufb01le",
+      "output": "file"
+    },
+    {
+      "function": "text",
+      "input": "\u1d2c",
+      "output": "a"
+    },
+    {
+      "function": "text",
+      "input": "\u212a",
+      "output": "k"
+    },
+    {
+      "function": "text",
+      "input": "\u00df",
+      "output": "\u00df"
+    },
+    {
+      "function": "text",
+      "input": "X\u03a3",
+      "output": "x\u03c3"
+    },
+    {
+      "function": "text",
+      "input": "\u0130X",
+      "output": "i\u0307x"
+    },
+    {
+      "function": "text",
+      "input": "\u01c5X",
+      "output": "d\u017ex"
+    },
+    {
+      "function": "text",
+      "input": "\u216b",
+      "output": "xii"
+    },
+    {
+      "function": "text",
+      "input": "\u3000",
+      "output": ""
+    },
+    {
+      "function": "text",
+      "input": "Alice@Example.COM",
+      "output": "alice@example.com"
+    },
+    {
+      "function": "text",
+      "input": "a\u1680b",
+      "output": "a b"
+    },
+    {
+      "function": "text",
+      "input": "a\u200bb",
+      "output": "a\u200bb"
+    },
+    {
+      "function": "site",
+      "input": "github.com",
+      "output": "github.com"
+    },
+    {
+      "function": "site",
+      "input": "GitHub.com",
+      "output": "github.com"
+    },
+    {
+      "function": "site",
+      "input": "https://www.github.com/login?next=/x#top",
+      "output": "github.com"
+    },
+    {
+      "function": "site",
+      "input": "user:pass@www.GITHUB.com:8443",
+      "output": "github.com"
+    },
+    {
+      "function": "site",
+      "input": "github.com.",
+      "output": "github.com"
+    },
+    {
+      "function": "site",
+      "input": "\uff47\uff49\uff54\uff48\uff55\uff42\uff0e\uff43\uff4f\uff4d",
+      "output": "github.com"
+    },
+    {
+      "function": "site",
+      "input": "HTTP://Example.com:80/",
+      "output": "example.com"
+    },
+    {
+      "function": "site",
+      "input": "accounts.example.com",
+      "output": "accounts.example.com"
+    },
+    {
+      "function": "site",
+      "input": "www.",
+      "output": "www"
+    },
+    {
+      "function": "site",
+      "input": "www.www.example.com",
+      "output": "www.example.com"
+    },
+    {
+      "function": "site",
+      "input": "localhost:3000",
+      "output": "localhost"
+    },
+    {
+      "function": "site",
+      "input": "example.com:",
+      "output": "example.com"
+    },
+    {
+      "function": "site",
+      "input": "[::1]:8080",
+      "output": "[::1]"
+    },
+    {
+      "function": "site",
+      "input": "\u00c4\u00d6.example",
+      "output": "\u00e4\u00f6.example"
+    },
+    {
+      "function": "site",
+      "input": "android://com.example.app",
+      "output": "com.example.app"
+    },
+    {
+      "function": "site",
+      "input": "mailto:me@example.com",
+      "output": "example.com"
+    },
+    {
+      "function": "site",
+      "input": "My Bank",
+      "output": "my bank"
+    },
+    {
+      "function": "site",
+      "input": "https://",
+      "output": ""
+    },
+    {
+      "function": "site",
+      "input": "   ",
+      "output": ""
+    },
+    {
+      "function": "secret",
+      "input": "e\u0301",
+      "output": "\u00e9"
+    },
+    {
+      "function": "secret",
+      "input": " Mixed Case \ufb01 ",
+      "output": " Mixed Case \ufb01 "
+    },
+    {
+      "function": "secret",
+      "input": "\u212b",
+      "output": "\u00c5"
+    }
+  ],
+  "note": "Normalization outputs that are empty mean the input is rejected for identity, secret and site.",
+  "roots": [
+    {
+      "fingerprint": "FZHC",
+      "identity": "Test User",
+      "normalized_identity": "test user",
+      "passwords": [
+        {
+          "account": "",
+          "generation": 1,
+          "length": 24,
+          "normalized_account": "",
+          "normalized_site": "github.com",
+          "password": "=0tL!yWs0M2$LJTag7W?H%G9",
+          "profile": "standard",
+          "site": "github.com",
+          "site_key": "3a77ee972e855902c1d39d08d61146ed7723a3c7b041e186165cac48fdc07233"
+        },
+        {
+          "account": "",
+          "generation": 1,
+          "length": 24,
+          "normalized_account": "",
+          "normalized_site": "github.com",
+          "password": "=0tL!yWs0M2$LJTag7W?H%G9",
+          "profile": "standard",
+          "site": "https://www.GitHub.com/login?return_to=%2F",
+          "site_key": "3a77ee972e855902c1d39d08d61146ed7723a3c7b041e186165cac48fdc07233"
+        },
+        {
+          "account": "alice@example.com",
+          "generation": 1,
+          "length": 24,
+          "normalized_account": "alice@example.com",
+          "normalized_site": "github.com",
+          "password": "$51%o7+&ANB-HCVlF6VWwJ-+",
+          "profile": "standard",
+          "site": "github.com",
+          "site_key": "87298802f875a3ef4c3cea442b1bd970a072a42a6484b208e37d55f444fe3718"
+        },
+        {
+          "account": "Alice@Example.com",
+          "generation": 1,
+          "length": 24,
+          "normalized_account": "alice@example.com",
+          "normalized_site": "github.com",
+          "password": "$51%o7+&ANB-HCVlF6VWwJ-+",
+          "profile": "standard",
+          "site": "github.com",
+          "site_key": "87298802f875a3ef4c3cea442b1bd970a072a42a6484b208e37d55f444fe3718"
+        },
+        {
+          "account": "alice@example.com",
+          "generation": 2,
+          "length": 24,
+          "normalized_account": "alice@example.com",
+          "normalized_site": "github.com",
+          "password": "oF*mdnl3C37KNcqv@%=5U8sQ",
+          "profile": "standard",
+          "site": "github.com",
+          "site_key": "f7d6d7be89340f2773532c14ce80d246b667fda7b326feb613a78115fce834fb"
+        },
+        {
+          "account": "",
+          "generation": 4294967295,
+          "length": 24,
+          "normalized_account": "",
+          "normalized_site": "github.com",
+          "password": "NSS3vGK7g4x8p?uUcZbwKj?K",
+          "profile": "standard",
+          "site": "github.com",
+          "site_key": "81f58e0b45e770ecb4a4ee412076d1aca4c71ef418e0c51f04bb27e53abffd63"
+        },
+        {
+          "account": "",
+          "generation": 1,
+          "length": 24,
+          "normalized_account": "",
+          "normalized_site": "github.com",
+          "password": "5auyVzwOpOAvAB4gWEmWgqxs",
+          "profile": "alphanumeric",
+          "site": "github.com",
+          "site_key": "694576deb5fa8c7c10d0d7e17a68d2cd52a520bf525c169c82c344fabc1557b8"
+        },
+        {
+          "account": "",
+          "generation": 1,
+          "length": 16,
+          "normalized_account": "",
+          "normalized_site": "github.com",
+          "password": "%L*M0d81*Hlu4q3R",
+          "profile": "legacy",
+          "site": "github.com",
+          "site_key": "866463140e53bdc2b8c6a01062263fb0317c6ac1e6410045ad60765466f2851b"
+        },
+        {
+          "account": "",
+          "generation": 1,
+          "length": 6,
+          "normalized_account": "",
+          "normalized_site": "github.com",
+          "password": "780679",
+          "profile": "pin",
+          "site": "github.com",
+          "site_key": "23cc9f076dcddd8ec77ab2cc530891f02ba60b320960d104d851c05e294a080e"
+        },
+        {
+          "account": "",
+          "generation": 1,
+          "length": 4,
+          "normalized_account": "",
+          "normalized_site": "github.com",
+          "password": "7829",
+          "profile": "pin",
+          "site": "github.com",
+          "site_key": "f51dcfb2af178ef1bdbfbcb72e63cbe332faeb30b1ef09f42f90cf8fc0af3be7"
+        },
+        {
+          "account": "",
+          "generation": 1,
+          "length": 8,
+          "normalized_account": "",
+          "normalized_site": "github.com",
+          "password": "$w4AaJnT",
+          "profile": "standard",
+          "site": "github.com",
+          "site_key": "36c8c4401d1aaf38a5c91f4ba5cf725ba4bc8227a4e45ddd0cd8428d0bca01a3"
+        },
+        {
+          "account": "",
+          "generation": 1,
+          "length": 64,
+          "normalized_account": "",
+          "normalized_site": "github.com",
+          "password": "?LuI#r%MT?=EBz&O9?VkVqQZX?O$Z*G@yh?PS9o8?JF5aBD^&KxahUpdL!7WB+G+",
+          "profile": "standard",
+          "site": "github.com",
+          "site_key": "c3bc751ee16b0f62bc15274cd385d851c5fe487d2109219341d1bad54e15865d"
+        },
+        {
+          "account": "",
+          "generation": 1,
+          "length": 8,
+          "normalized_account": "",
+          "normalized_site": "github.com",
+          "password": "FiP$j6rk",
+          "profile": "legacy",
+          "site": "github.com",
+          "site_key": "3939ace2fce812781c484a54e114f201eebaed6668e1d7b0b70dc303363cad90"
+        },
+        {
+          "account": "",
+          "generation": 1,
+          "length": 8,
+          "normalized_account": "",
+          "normalized_site": "example.com",
+          "password": "GzJ^Kb$5",
+          "profile": "legacy",
+          "site": "example.com",
+          "site_key": "c2323fd988ea19bcdf10bedb52181c3658881183fbc8875838f944f8eaa2652c"
+        },
+        {
+          "account": "",
+          "generation": 2,
+          "length": 8,
+          "normalized_account": "",
+          "normalized_site": "example.com",
+          "password": "^5MpYEPJ",
+          "profile": "legacy",
+          "site": "example.com",
+          "site_key": "94819cd0f6d9119630aad94f0cfe9b1c5fac56ab89ace844cd3fbfbd40951d2a"
+        },
+        {
+          "account": "",
+          "generation": 3,
+          "length": 8,
+          "normalized_account": "",
+          "normalized_site": "example.com",
+          "password": "Xo7K!f&p",
+          "profile": "standard",
+          "site": "example.com",
+          "site_key": "fc78d9189ff00ee0666cb2d372c459d7bc5f024e8b5e562abfeafa2231dc4d20"
+        },
+        {
+          "account": "",
+          "generation": 1,
+          "length": 24,
+          "normalized_account": "",
+          "normalized_site": "accounts.google.com",
+          "password": "#i@cXR54Y=m+%!5XxTrh-X0C",
+          "profile": "standard",
+          "site": "accounts.google.com",
+          "site_key": "da5f121d56049b7a85483ecfe08b6ead2746d4fd11c63375c0b280ed7fc934b8"
+        },
+        {
+          "account": "",
+          "generation": 1,
+          "length": 24,
+          "normalized_account": "",
+          "normalized_site": "\u00e4\u00f6.example",
+          "password": "0BQ@%KtffOVVdl^srZE4T$Ro",
+          "profile": "standard",
+          "site": "\u00c4\u00d6.example",
+          "site_key": "01e549055340ffc533999a2075aef0fdcb4a848d5258800025b5d20753ca16cb"
+        },
+        {
+          "account": "USER\u00a0NAME",
+          "generation": 1,
+          "length": 12,
+          "normalized_account": "user name",
+          "normalized_site": "bank.example",
+          "password": "QpshFJO2v3#Z",
+          "profile": "legacy",
+          "site": "bank.example",
+          "site_key": "8094f1836144599ec6ca9e4fa4f6529106c8a139f3edbcacf36eb90719b43996"
+        }
+      ],
+      "root_key": "21ce9ea7a01ca1af7ea0fb88385cc2303df8c454c7e60f5fe8ec86f3b877d61b",
+      "salt": "e5dcc1bcbdd6e1a0992ccdafca215ea5b9c0be1a6aa28f3c983989d89e88b506",
+      "secret": "correct horse battery staple"
+    },
+    {
+      "fingerprint": "2CK2",
+      "identity": "  Jane   DOE\u00a0",
+      "normalized_identity": "jane doe",
+      "passwords": [
+        {
+          "account": "",
+          "generation": 1,
+          "length": 24,
+          "normalized_account": "",
+          "normalized_site": "github.com",
+          "password": "nIgejoZXq0OSRaBqw#XXwD9e",
+          "profile": "standard",
+          "site": "github.com",
+          "site_key": "f7fe4d6c20b999bf2df5d4e792c6eeb1ba261ce2d3fe789fd239bc8751b58a6f"
+        },
+        {
+          "account": "",
+          "generation": 1,
+          "length": 24,
+          "normalized_account": "",
+          "normalized_site": "\u00e5\u00f8.example",
+          "password": "8m1SP*uoqd-w_ICI1vyeGvT&",
+          "profile": "standard",
+          "site": "WWW.\u00c5\u00d8.EXAMPLE",
+          "site_key": "85a66a24c51c396a7957e1d5fcac7763072b9b9c79a648b3c81006e1552e05c6"
+        },
+        {
+          "account": "jane",
+          "generation": 3,
+          "length": 20,
+          "normalized_account": "jane",
+          "normalized_site": "mail.example",
+          "password": "8uiohXRMEI7sI0QmbHlQ",
+          "profile": "alphanumeric",
+          "site": "mail.example",
+          "site_key": "80e302cc471b489970341e5ffb8daccd327dff6e423dce42fd05ba77ccbf15b2"
+        }
+      ],
+      "root_key": "16cb6d615cbe30062524789f029acc95c33d579831964eea41b255f6f4aa87ac",
+      "salt": "06e3bec5c37e29422a6d0e31fbbed9c54a2460e94ceb6772fb9400e39252a22c",
+      "secret": "\u00e4\u00f6\u00fc \u20ac100 \u2713"
+    },
+    {
+      "fingerprint": "7RB5",
+      "identity": "Test User",
+      "normalized_identity": "test user",
+      "passwords": [
+        {
+          "account": "",
+          "generation": 1,
+          "length": 24,
+          "normalized_account": "",
+          "normalized_site": "example.com",
+          "password": "ztEV&*$74JKzS_RvdG60eEe9",
+          "profile": "standard",
+          "site": "example.com",
+          "site_key": "4f1c1fc0f1669c1421d06647e9480fbba3015b53650ba988ffeb7c9760d69391"
+        }
+      ],
+      "root_key": "2e79f75b77619c17acb5de90177489c23591cc550bb21472c89b541b4b50ccd0",
+      "salt": "e5dcc1bcbdd6e1a0992ccdafca215ea5b9c0be1a6aa28f3c983989d89e88b506",
+      "secret": "correct horse e\u0301"
+    },
+    {
+      "fingerprint": "7RB5",
+      "identity": "Test User",
+      "normalized_identity": "test user",
+      "passwords": [
+        {
+          "account": "",
+          "generation": 1,
+          "length": 24,
+          "normalized_account": "",
+          "normalized_site": "example.com",
+          "password": "ztEV&*$74JKzS_RvdG60eEe9",
+          "profile": "standard",
+          "site": "example.com",
+          "site_key": "4f1c1fc0f1669c1421d06647e9480fbba3015b53650ba988ffeb7c9760d69391"
+        }
+      ],
+      "root_key": "2e79f75b77619c17acb5de90177489c23591cc550bb21472c89b541b4b50ccd0",
+      "salt": "e5dcc1bcbdd6e1a0992ccdafca215ea5b9c0be1a6aa28f3c983989d89e88b506",
+      "secret": "correct horse \u00e9"
+    }
+  ]
+}

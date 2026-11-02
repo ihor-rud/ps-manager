@@ -1,0 +1,73 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: clippy, rustfmt
+          targets: aarch64-linux-android, x86_64-pc-windows-gnu
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-make,cargo-audit,cargo-ndk,taplo
+      - run: cargo make format-check
+      - run: cargo make audit
+      # The runner image ships an NDK and exports its path as ANDROID_NDK_LATEST_HOME.
+      - run: ANDROID_NDK_HOME="$ANDROID_NDK_LATEST_HOME" cargo make clippy
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-make
+      - run: cargo make test
+      - run: cargo make selftest
+
+  reference:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install "cryptography>=44"
+      - run: python -I reference/psm_ref.py verify spec/vectors-v1.json
+
+  jni:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-make
+      - run: cargo make jni-test
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-make,cargo-ndk
+      - run: ANDROID_NDK_HOME="$ANDROID_NDK_LATEST_HOME" cargo make android-build

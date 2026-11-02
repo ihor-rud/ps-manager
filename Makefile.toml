@@ -1,0 +1,152 @@
+[config]
+skip_git_env_info = true
+
+[tasks.clippy]
+clear        = true
+dependencies = ["native-clippy", "windows-clippy", "android-clippy"]
+workspace    = false
+
+[tasks.native-clippy]
+args      = ["clippy", "--workspace", "--all-targets", "--all-features"]
+command   = "cargo"
+toolchain = "nightly"
+workspace = false
+
+[tasks.clippy-native]
+alias = "native-clippy"
+
+# Checks the Windows-only code paths; needs no Windows linker.
+[tasks.windows-clippy]
+args = [
+    "clippy",
+    "--workspace",
+    "--all-targets",
+    "--all-features",
+    "--target",
+    "x86_64-pc-windows-gnu",
+]
+extend = "native-clippy"
+
+[tasks.clippy-windows]
+alias = "windows-clippy"
+
+[tasks.android-clippy]
+args = [
+    "ndk",
+    "--target",
+    "aarch64-linux-android",
+    "clippy",
+    "--workspace",
+    "--all-targets",
+    "--all-features",
+]
+extend = "native-clippy"
+install_crate = "cargo-ndk"
+
+[tasks.clippy-android]
+alias = "android-clippy"
+
+[tasks.audit]
+args          = ["audit", "--deny", "warnings"]
+command       = "cargo"
+install_crate = "cargo-audit"
+workspace     = false
+
+[tasks.fmt]
+args      = ["fmt", "--all"]
+command   = "cargo"
+toolchain = "nightly"
+workspace = false
+
+[tasks.fmt-check]
+args   = ["fmt", "--all", "--check"]
+extend = "fmt"
+
+[tasks.toml-fmt]
+args          = ["fmt"]
+command       = "taplo"
+install_crate = { crate_name = "taplo-cli", binary = "taplo", test_arg = "--version" }
+workspace     = false
+
+[tasks.toml-fmt-check]
+args   = ["fmt", "--check"]
+extend = "toml-fmt"
+
+[tasks.format]
+clear        = true
+dependencies = ["fmt", "toml-fmt"]
+workspace    = false
+
+[tasks.format-check]
+clear        = true
+dependencies = ["fmt-check", "toml-fmt-check"]
+workspace    = false
+
+[tasks.test]
+args      = ["test", "--workspace"]
+clear     = true
+command   = "cargo"
+workspace = false
+
+[tasks.selftest]
+args      = ["run", "--release", "--package", "psm", "--", "selftest"]
+command   = "cargo"
+workspace = false
+
+# Recomputes every test vector with the independent Python implementation.
+[tasks.reference]
+args      = ["-I", "reference/psm_ref.py", "verify", "spec/vectors-v1.json"]
+command   = "python3"
+workspace = false
+
+# Calls the JNI bridge from a desktop JVM.
+[tasks.jni-test]
+args      = ["crates/android/jvm-test/run.sh"]
+command   = "sh"
+workspace = false
+
+[tasks.test-jni]
+alias = "jni-test"
+
+[tasks.build]
+args      = ["build", "--release", "--package", "psm"]
+clear     = true
+command   = "cargo"
+workspace = false
+
+[tasks.android-build]
+args = [
+    "ndk",
+    "--target",
+    "arm64-v8a",
+    "--target",
+    "armeabi-v7a",
+    "--target",
+    "x86_64",
+    "--output-dir",
+    "target/jniLibs",
+    "build",
+    "--release",
+    "--package",
+    "psm-android",
+]
+command = "cargo"
+install_crate = "cargo-ndk"
+workspace = false
+
+[tasks.build-android]
+alias = "android-build"
+
+[tasks.ci]
+clear = true
+dependencies = [
+    "format-check",
+    "audit",
+    "clippy",
+    "test",
+    "selftest",
+    "reference",
+    "jni-test",
+    "android-build",
+]
+workspace = false

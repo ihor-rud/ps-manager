@@ -1,0 +1,6 @@
+blank_lines_upper_bound = 1
+format_strings          = true
+group_imports           = "StdExternalCrate"
+imports_granularity     = "Module"
+imports_layout          = "HorizontalVertical"
+unstable_features       = true

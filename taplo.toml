@@ -1,0 +1,22 @@
+exclude = ["target/**"]
+include = ["**/*.toml"]
+
+[formatting]
+align_entries     = true
+array_auto_expand = true
+indent_string     = "    "
+reorder_keys      = true
+
+[[rule]]
+exclude = ["**/Makefile.toml"]
+include = ["**/*.toml"]
+
+[rule.formatting]
+reorder_arrays = true
+
+[[rule]]
+exclude = ["Cargo.toml"]
+include = ["**/Cargo.toml"]
+
+[rule.formatting]
+array_auto_expand = false
